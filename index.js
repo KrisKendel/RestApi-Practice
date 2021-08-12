@@ -1,8 +1,9 @@
 const Joi = require('joi');
 const express = require('express');
 const app = express();
-
+const books = require('./assets/books')
 app.use(express.json());
+
 
 const courses = [{
     id: 1,
@@ -22,29 +23,40 @@ app.get('/', (req, res) => {
     res.send('hello worldssss');
 });
 
-app.get('/api/courses', (req, res) => {
-    res.send(courses);
+// GET ALL
+app.get('/api/books', (req, res) => {
+    res.send(books);
 });
 
-app.get('/api/courses/:id', (req, res) => {
-    const course = courses.find(c => c.id === parseInt(req.params.id));
-    if (!course) {
+// GET BY ID
+
+app.get('/api/books/:id', (req, res) => {
+    const book = books.find(c => c.id === parseInt(req.params.id));
+    if (!book) {
         res.status(404).send(`The course with ID ${req.params.id} was not found`);
     }
-    res.send(course);
+    res.send(book);
 });
 
 
 // POST
-app.post('/api/courses', (req, res) => {
+app.post('/api/books', (req, res) => {
 
-    const course = {
-        id: courses.length + 1,
-        name: req.body.name,
+    const book = {
+        id: books.length + 1,
+        title: req.body.title,
+        publishDate: req.body.publishDate,
+        shortDescription: req.body.shortDescription,
+        authors: req.body.shortDescription,
+        availability: req.body.shortDescription
     };
 
     const schema = Joi.object({
-        name: Joi.string().min(3).required(),
+        title: Joi.string().min(3).required(),
+        publishDate: Joi.required(),
+        shortDescription: Joi.string().required(),
+        authors: Joi.required(),
+        availability: Joi.string().required()
     })
 
     const result = schema.validate(req.body);
@@ -54,8 +66,8 @@ app.post('/api/courses', (req, res) => {
         return;
     }
 
-    courses.push(course);
-    res.send(course);
+    books.push(book);
+    res.send(book);
 });
 
 
@@ -97,6 +109,8 @@ app.delete('/api/courses/:id', (req, res) => {
 
     res.send(course);
 });
+
+
 
 
 const port = process.env.PORT || 3000;
