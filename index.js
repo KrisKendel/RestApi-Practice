@@ -4,25 +4,6 @@ const app = express();
 const books = require('./assets/books')
 app.use(express.json());
 
-
-const courses = [{
-    id: 1,
-    name: 'course 1'
-},
-{
-    id: 2,
-    name: 'course 2'
-},
-{
-    id: 3,
-    name: 'course 3'
-},
-];
-
-app.get('/', (req, res) => {
-    res.send('hello worldssss');
-});
-
 // GET ALL
 app.get('/api/books', (req, res) => {
     res.send(books);
@@ -33,7 +14,7 @@ app.get('/api/books', (req, res) => {
 app.get('/api/books/:id', (req, res) => {
     const book = books.find(c => c.id === parseInt(req.params.id));
     if (!book) {
-        res.status(404).send(`The course with ID ${req.params.id} was not found`);
+        res.status(404).send(`The book with ID ${req.params.id} was not found`);
     }
     res.send(book);
 });
@@ -51,6 +32,7 @@ app.post('/api/books', (req, res) => {
         availability: req.body.shortDescription
     };
 
+    // Validation schema
     const schema = Joi.object({
         title: Joi.string().min(3).required(),
         publishDate: Joi.required(),
@@ -72,15 +54,23 @@ app.post('/api/books', (req, res) => {
 
 
 // PUT 
-app.put('/api/courses/:id', (req, res) => {
+app.put('/api/books/:id', (req, res) => {
 
-    const course = courses.find(c => c.id === parseInt(req.params.id));
-    if (!course) {
-        res.status(404).send(`The course with ID ${req.params.id} was not found`);
+    const book = books.find(c => c.id === parseInt(req.params.id));
+    if (!book) {
+        res.status(404).send(`The book with ID ${req.params.id} was not found`);
     }
 
     const schema = Joi.object({
-        name: Joi.string().min(3).required(),
+        title: Joi.string(),
+        publishDate: Joi.string(),
+        shortDescription: Joi.string(),
+        authors: Joi.string(),
+        availability: Joi.string(),
+        userID: Joi.number(),
+        id: Joi.number(),
+        rentedFrom: Joi.string(),
+        rentedTo: Joi.string(),
     })
 
     const result = schema.validate(req.body);
@@ -90,24 +80,53 @@ app.put('/api/courses/:id', (req, res) => {
         return;
     }
 
-    course.name = req.body.name;
-    res.send(course);
+    if (req.body.title) {
+        book.title = req.body.title;
+    }
+
+    if (req.body.publishDate) {
+        book.publishDate = req.body.publishDate;
+    }
+
+    if (req.body.shortDescription) {
+        book.shortDescription = req.body.shortDescription;
+    }
+
+    if (req.body.authors) {
+        book.authors = req.body.authors;
+    }
+
+    if (req.body.availability) {
+        book.availability = req.body.availability;
+    }
+
+    if (req.body.userID) {
+        book.userID = req.body.userID;
+    }
+
+    if (req.body.rentedFrom) {
+        book.rentedFrom = req.body.rentedFrom;
+    }
+
+    if (req.body.rentedTo) {
+        book.rentedTo = req.body.rentedTo;
+    }
+    res.send(book);
 });
 
 // DELETE
 
-app.delete('/api/courses/:id', (req, res) => {
-    const course = courses.find(c => c.id === parseInt(req.params.id));
-    if (!course) {
-        res.status(404).send(`The course with ID ${req.params.id} was not found`);
+app.delete('/api/books/:id', (req, res) => {
+    const book = books.find(c => c.id === parseInt(req.params.id));
+    if (!book) {
+        res.status(404).send(`The book with ID ${req.params.id} was not found`);
         return;
     }
 
-    // delete
-    const index = courses.indexOf(course);
-    courses.splice(index, 1);
+    const index = books.indexOf(book);
+    books.splice(index, 1);
 
-    res.send(course);
+    res.send(`The book with ID ${req.params.id} is sucessfully deleted`);
 });
 
 
