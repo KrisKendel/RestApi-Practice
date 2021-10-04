@@ -1,136 +1,93 @@
 const Joi = require('joi');
 const express = require('express');
 const app = express();
-const books = require('./assets/books')
+const survey = require('./assets/survey')
 app.use(express.json());
 
-// GET ALL
-app.get('/api/books', (req, res) => {
-    res.send(books);
+// get survey
+let surveyID;
+let surveyType;
+
+app.get('/api/v1/survey', (req, res) => {
+    surveyID = survey.id;
+    surveyType = survey.type;
+    res.send(survey);
 });
 
-// GET BY ID
+// post survey
 
-app.get('/api/books/:id', (req, res) => {
-    const book = books.find(c => c.id === parseInt(req.params.id));
-    if (!book) {
-        res.status(404).send(`The book with ID ${req.params.id} was not found`);
+app.post('/api/v1/survey/:id/answers', (req, res) => {
+
+
+    const request = {
+        type: req.body.type,
+        attributes: {
+            answers: [
+                {
+                    questionId: req.body.attributes.answers[0].questionId,
+                    answer: req.body.attributes.answers[0].answer
+                },
+                {
+                    questionId: req.body.attributes.answers[0].questionId,
+                    answer: req.body.attributes.answers[0].answer
+                }
+            ]
+        }
     }
-    res.send(book);
-});
 
-
-// POST
-app.post('/api/books', (req, res) => {
-
-    const book = {
-        id: books.length + 1,
-        title: req.body.title,
-        publishDate: req.body.publishDate,
-        shortDescription: req.body.shortDescription,
-        authors: req.body.shortDescription,
-        availability: req.body.shortDescription
+    const response = {
+        type: 'answersSurvey',
+        id: Math.floor(Math.random() * 1000) * 3,
+        attributes: {
+            answers: [
+                {
+                    questionId: req.body.attributes.answers[0].questionId,
+                    answer: req.body.attributes.answers[0].answer
+                },
+                {
+                    questionId: req.body.attributes.answers[1].questionId,
+                    answer: req.body.attributes.answers[1].answer
+                }
+            ]
+        },
+        relationships: {
+            survey: {
+                data: {
+                    type: surveyType,
+                    id: surveyID
+                }
+            }
+        }
     };
 
     // Validation schema
-    const schema = Joi.object({
-        title: Joi.string().min(3).required(),
-        publishDate: Joi.required(),
-        shortDescription: Joi.string().required(),
-        authors: Joi.required(),
-        availability: Joi.string().required()
-    })
 
-    const result = schema.validate(req.body);
+    let schema = Joi.object().keys({
+        answers: Joi.array().items(
+            Joi.object({
+                questionId: Joi.string().required(),
+                answer: Joi.string().required(),
+            }),
+            Joi.object({
+                questionId: Joi.string().required(),
+                answer: Joi.string().required(),
+            })
+        ).required(),
+    });
 
-    if (result.error) {
-        res.status(400).send(result.error);
-        return;
-    }
-
-    books.push(book);
-    res.send(book);
-});
-
-
-// PUT 
-app.put('/api/books/:id', (req, res) => {
-
-    const book = books.find(c => c.id === parseInt(req.params.id));
-    if (!book) {
-        res.status(404).send(`The book with ID ${req.params.id} was not found`);
-    }
-
-    const schema = Joi.object({
-        title: Joi.string(),
-        publishDate: Joi.string(),
-        shortDescription: Joi.string(),
-        authors: Joi.string(),
-        availability: Joi.string(),
-        userID: Joi.number(),
-        id: Joi.number(),
-        rentedFrom: Joi.string(),
-        rentedTo: Joi.string(),
-    })
-
-    const result = schema.validate(req.body);
+    const result = schema.validate(request.attributes);
 
     if (result.error) {
-        res.status(400).send(result.error);
+        res.status(400).send({ "errors": [result.error.message] });
         return;
     }
 
-    if (req.body.title) {
-        book.title = req.body.title;
-    }
-
-    if (req.body.publishDate) {
-        book.publishDate = req.body.publishDate;
-    }
-
-    if (req.body.shortDescription) {
-        book.shortDescription = req.body.shortDescription;
-    }
-
-    if (req.body.authors) {
-        book.authors = req.body.authors;
-    }
-
-    if (req.body.availability) {
-        book.availability = req.body.availability;
-    }
-
-    if (req.body.userID) {
-        book.userID = req.body.userID;
-    }
-
-    if (req.body.rentedFrom) {
-        book.rentedFrom = req.body.rentedFrom;
-    }
-
-    if (req.body.rentedTo) {
-        book.rentedTo = req.body.rentedTo;
-    }
-    res.send(book);
-});
-
-// DELETE
-
-app.delete('/api/books/:id', (req, res) => {
-    const book = books.find(c => c.id === parseInt(req.params.id));
-    if (!book) {
-        res.status(404).send(`The book with ID ${req.params.id} was not found`);
-        return;
-    }
-
-    const index = books.indexOf(book);
-    books.splice(index, 1);
-
-    res.send(`The book with ID ${req.params.id} is sucessfully deleted`);
+    res.send(response);
 });
 
 
 
 
-const port = process.env.PORT || 3000;
+
+const port = process.env.PORT || 5500;
 app.listen(port, () => console.log(`Listening on port ${port}`));
